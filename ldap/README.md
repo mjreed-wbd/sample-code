@@ -1,7 +1,10 @@
 These files show examples of interacting with the Turner Active Directory
-instance using LDAP.  
+instance using LDAP. They are all implementations of the same command-line 
+program, which looks someone up in the directory and displays their phone number. 
+Read the code to see how they work, but they all look for an LDAP URL in the environment
+variable $AD\_LDAP\_URL, and default to `ldap://ldap.turner.com` if that is not set.
 
-The preferred access points are these, in order:
+Speaking of URLs, the preferred access points are these, in order:
 
 1. `ldap://ldap.turner.com` with TLS negotiation enabled. 
 2. `ldaps://ldap.turner.com`, using all-SSL-all-the-time.
@@ -9,9 +12,10 @@ The preferred access points are these, in order:
 Both of the above will require that you either configure your LDAP client library to trust the
 server certificate or disable certificate validation.
 
-If you absolutely cannot get the secure versions to work for some reason, the plaintext port
-is open at `ldap://ldap.turner.com`. But binding to it will require sending the password in
-the clear, in violation of ISO policy.
+If you absolutely cannot get the secure versions to work for some reason, the
+plaintext port at `ldap://ldap.turner.com` will also work without negotiating
+TLS. But binding to it will require sending the password in the clear, in
+violation of ISO policy.
 
 ##ActiveDirectory Notes
 
