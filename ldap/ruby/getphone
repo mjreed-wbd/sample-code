@@ -4,27 +4,48 @@ ENV['BUNDLE_GEMFILE'] = File.join File.dirname(__FILE__),'Gemfile'
 require 'bundler/setup'
 require 'net/ldap'
 require 'uri'
-require 'highline' # for no-echo password prompt
 
 def main(args)
-  unless args.first
-   $stderr.puts "Usage: #{$0} username\n" 
-   exit 1
-  end
+  # need username to look up
+  die 'Usage: %s username' unless args.length == 1
+
+  # Get the LDAP URL from the environment, or default to known value
   ldap_url = URI.parse(ENV.fetch 'AD_LDAP_URL', 'ldap://ldap.turner.com')
-  high = HighLine.new
-  samaccountname = high.ask 'Enter username to search for: '
-  user = high.ask 'Enter username to bind with: '
-  user = "Turner\\#{user}" unless user =~ /[\\,]/
-  pass = high.ask('Enter bind user password: ') { |q| q.echo = false }
-  conn = Net::LDAP.new(encryption: :tls, host: ldap_url.host, port: ldap_url.port)
-  conn.auth(user, pass)
-  conn.bind
-  conn.search(base: 'cn=users,dc=turner,dc=com', 
-             filter: "samaccountname=#{samaccountname}",
-             attributes: %w(telephoneNumber)).each do |entry|
-    print "DN: #{entry.dn}\nPhone: #{entry.telephoneNumber}\n"
+
+  # No defaults for credentials
+  bind_dn   = ENV['AD_LDAP_BIND_DN']       or die '%s: AD_LDAP_BIND_DN must be set.'
+  bind_pass = ENV['AD_LDAP_BIND_PASSWORD'] or die '%s: AD_LDAP_BIND_PASSWORD must be set.'
+
+  begin
+    Net::LDAP.open(encryption: :start_tls, host: ldap_url.host, port: ldap_url.port) do |conn|
+
+      begin 
+        conn.tap { |c| c.auth bind_dn, bind_pass }.bind
+      rescue Net::LDAP::Error
+        die "%s: Could not bind to '#{ldap_url}' with supplied credentials."
+      end
+
+      begin 
+        entries = conn.search(base: 'cn=users,dc=turner,dc=com',
+                              filter: "samaccountname=#{args[0]}",
+                              attributes: %w(telephoneNumber))
+      rescue Net::LDAP::Error
+        die "%s: could not perform search on '#{ldap_url}'."
+      end
+
+      entry = entries.first or die "%s: no entries found."
+
+      puts entry.telephoneNumber
+    end
+  rescue Net::LDAP::Error
+    die "%s: Could not connect to '#{ldap_url}'."
   end
+
+end
+
+def die(msg)
+  $stderr.printf "#{msg}\n", $0
+  exit 1
 end
 
 main(ARGV)

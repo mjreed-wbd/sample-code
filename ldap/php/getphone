@@ -15,24 +15,27 @@ function main($args) {
     or croak("%s: AD_LDAP_BIND_PASSWORD must be set.");
 
   # connect to the server
-  ($ldap = ldap_connect($url)) or croak("%s: Could not connect to '$url'");
+  ($ldap = ldap_connect($url)) or croak("%s: Could not connect to '$url'.");
 
 
   # authenticate
   ldap_bind($ldap, $bind_dn, $bind_pass)
-    or croak("%s: could not bind with supplied credentials.");
+    or croak("%s: could not bind to '$url' with supplied credentials.");
 
   # perform the search
   $cursor = ldap_search($ldap, 'cn=users,dc=turner,dc=com',
                                "samaccountname=$args[1]",
-                               array('telephoneNumber'));
+                               array('telephoneNumber'))
+    or croak("%s: could not perform search on '$url'.");
+
+
 
   # get the first found entry 
   $entry = ldap_first_entry($ldap, $cursor) or croak("%s: no entries found.");
 
   # convert it into an array 
   $attrs = array_change_key_case(ldap_get_attributes($ldap, $entry));
-  
+
   # close the connection
   ldap_close($ldap);
 
@@ -42,7 +45,7 @@ function main($args) {
 
 function croak($msg) {
   global $argv;
-  error_log(sprintf("$msg\n", $argv[0]));
+  error_log(sprintf("$msg", $argv[0]));
   exit(1);
 }
 
