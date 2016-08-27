@@ -1,12 +1,24 @@
 These files show examples of interacting with the Turner Active Directory
 instance using LDAP. They are all implementations of the same command-line 
 program, which looks someone up in the directory and displays their phone number. 
-Read the code to see how they work, but they all look for an LDAP URL in the environment
-variable $AD\_LDAP\_URL, and default to `ldap://ldap.turner.com` if that is not set.
+
+They look for a credentials in the environment (specifically, `AD_LDAP_BIND_USER`
+and `AD_LDAP_BIND_PASSWORD`). User entries in our AD live under
+`CN=Users,DC=turner,DC=com`, with distinguished names that are not necessarily
+predictable (for instance, mine is `CN=Reed\, Mark
+(TBS),CN=Users,DC=turner,DC=com`).  Fortunately, you can instead bind using the
+format `Turner\\$sAMAccountName`, in my case `Turner\mjreed`.
+
+Once the environment variables are set, you can use the Makefile to run
+spectests and confirm that they all work, assuming you have the requisite
+interpreter and access to ldap.turner.com.
+
+You can also override the URL with `AD_LDAP_URL`, but it defaults to
+`ldap://ldap.turner.com` if that is not set.
 
 Speaking of URLs, the preferred access points are these, in order:
 
-1. `ldap://ldap.turner.com` with TLS negotiation enabled. 
+1. `ldap://ldap.turner.com` with TLS negotiation enabled.
 2. `ldaps://ldap.turner.com`, using all-SSL-all-the-time.
 
 Both of the above will require that you either configure your LDAP client library to trust the
@@ -16,11 +28,3 @@ If you absolutely cannot get the secure versions to work for some reason, the
 plaintext port at `ldap://ldap.turner.com` will also work without negotiating
 TLS. But binding to it will require sending the password in the clear, in
 violation of ISO policy.
-
-##ActiveDirectory Notes
-
-User entries in AD live under `CN=Users,DC=turner,DC=com`. While you can bind
-with the actual Distinguished Name, as in other LDAP services, the DN is
-formatted oddly and hard to predict if you don't know it.  For instance, mine
-is `CN=Reed\, Mark (TBS),CN=Users,DC=turner,DC=com`.  Fortunately, you can also
-bind using the format `Turner\\$sAMAccountName`, in my case `Turner\mjreed`.
