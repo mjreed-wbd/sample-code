@@ -7,10 +7,13 @@
 
 # Demonstration code
 main() {
-  local samaccountname dn tel
-  read -p 'Enter username to find: ' samaccountname
+  local dn tel
+  if (( $# < 1 )); then
+    echo >&2 "Usage: $0 username"
+    return 1
+  fi
   IFS=$'\n' read -d '' dn tel <<<"$(ad_ldap search -b cn=users,dc=turner,dc=com \
-                   "samaccountname=$samaccountname" telephoneNumber |
+                   "samaccountname=$1" telephoneNumber |
                    sed -n 's/^\(dn\|telephoneNumber\): //p')"
   printf "DN: %s\nPhone: %s\n" "$dn" "$tel"
 }
