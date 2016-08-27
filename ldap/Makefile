@@ -1,3 +1,2 @@
-tests:
-	@cd tests
-	@make
+run_tests:
+	@cd tests; make

@@ -1,5 +1,7 @@
 test: setup
-	bundle exec rspec
+	@echo "Running tests"
+	@bundle exec rspec
 
 setup:
-	bundle install 
+	@echo "Setting up test environment"
+	@bundle install 
