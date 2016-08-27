@@ -9,20 +9,20 @@ predictable (for instance, mine is `CN=Reed\, Mark
 (TBS),CN=Users,DC=turner,DC=com`).  Fortunately, you can instead bind using the
 format `Turner\\$sAMAccountName`, in my case `Turner\mjreed`.
 
-Once the environment variables are set, you can use the Makefile to run
-spectests and confirm that they all work, assuming you have the requisite
-interpreter and access to ldap.turner.com.
-
 You can also override the URL with `AD_LDAP_URL`, but it defaults to
 `ldap://ldap.turner.com` if that is not set.
 
-Speaking of URLs, the preferred access points are these, in order:
+If you just type `make`, it will prompt for the credentials, set the environment
+variables, and run the spectests. You will need the respective interpreters and access
+to ldap.turner.com forthem to pass, of course.
+
+The preferred access methods are these, in order:
 
 1. `ldap://ldap.turner.com` with TLS negotiation enabled.
 2. `ldaps://ldap.turner.com`, using all-SSL-all-the-time.
 
-Both of the above will require that you either configure your LDAP client library to trust the
-server certificate or disable certificate validation.
+Both of the above will require that you either configure your LDAP client
+library to trust the server certificate or disable certificate validation.
 
 If you absolutely cannot get the secure versions to work for some reason, the
 plaintext port at `ldap://ldap.turner.com` will also work without negotiating
