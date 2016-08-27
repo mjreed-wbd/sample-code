@@ -4,4 +4,4 @@ test: setup
 
 setup:
 	@echo "Setting up test environment"
-	@bundle install 
+	@bundle install --quiet
