@@ -1,0 +1,49 @@
+#!/usr/bin/env php
+<?php
+function main($args) {
+
+  # need username to look up
+  if (count($args) != 2) croak("Usage: %s username");
+
+  # Get the LDAP URL from the environment, or default to known value
+  $url = ($url = getenv('AD_LDAP_URL')) ? $url : 'ldap://ldap.turner.com';
+
+  # No defaults for credentials
+  ($bind_dn = getenv('AD_LDAP_BIND_DN'))
+    or croak("%s: AD_LDAP_BIND_DN must be set.");
+  ($bind_pass = getenv('AD_LDAP_BIND_PASSWORD'))
+    or croak("%s: AD_LDAP_BIND_PASSWORD must be set.");
+
+  # connect to the server
+  ($ldap = ldap_connect($url)) or croak("%s: Could not connect to '$url'");
+
+
+  # authenticate
+  ldap_bind($ldap, $bind_dn, $bind_pass)
+    or croak("%s: could not bind with supplied credentials.");
+
+  # perform the search
+  $cursor = ldap_search($ldap, 'cn=users,dc=turner,dc=com',
+                               "samaccountname=$args[1]",
+                               array('telephoneNumber'));
+
+  # get the first found entry 
+  $entry = ldap_first_entry($ldap, $cursor) or croak("%s: no entries found.");
+
+  # convert it into an array 
+  $attrs = array_change_key_case(ldap_get_attributes($ldap, $entry));
+  
+  # close the connection
+  ldap_close($ldap);
+
+  # and display the result
+  print($attrs['telephonenumber'][0]."\n");
+}
+
+function croak($msg) {
+  global $argv;
+  error_log(sprintf("$msg\n", $argv[0]));
+  exit(1);
+}
+
+main($argv);
