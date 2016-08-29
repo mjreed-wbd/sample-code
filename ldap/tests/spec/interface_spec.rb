@@ -14,11 +14,13 @@ end.each do |language, script|
   describe language.capitalize, type: :aruba do
 
     before :all do
-      if aruba.environment.include? 'BUNDLE_GEMFILE' then
-        aruba.environment['PATH'] = aruba.environment['BUNDLE_ORIG_PATH']
-        %w(BUNDLE_BIN_PATH BUNDLE_GEMFILE BUNDLE_ORIG_PATH GEM_HOME RBENV_DIR
-         RBENV_HOOK_PATH RUBYLIB RUBYOPT).each do |key|
-            aruba.environment.delete key
+      aruba.environment.tap do |env| 
+        if env.include? 'BUNDLE_GEMFILE' then
+          env['PATH'] = env['BUNDLE_ORIG_PATH']
+          %w(BUNDLE_BIN_PATH BUNDLE_GEMFILE BUNDLE_ORIG_PATH GEM_HOME RBENV_DIR
+           RBENV_HOOK_PATH RUBYLIB RUBYOPT).each do |key|
+            env.delete key
+          end
         end
       end
     end
